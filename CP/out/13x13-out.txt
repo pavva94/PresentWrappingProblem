@@ -1,0 +1,11 @@
+13 13
+9
+3 3	5 1 false
+3 4	1 4 false
+3 5	8 9 false
+3 6	11 1 false
+3 7	11 7 false
+3 8	8 1 false
+4 3	1 1 false
+4 4	4 4 false
+7 6	1 8 false
