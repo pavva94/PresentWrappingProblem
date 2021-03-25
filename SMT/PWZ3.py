@@ -70,7 +70,6 @@ def write_solution(instance, w, h, n_papers, papers, coords, rotations, path="SM
 
 
 def cumulative(solver, h, w, n_papers, coords, rotations, papers):
-
     for coord_y in range(h):
         listsum = []
         for i in range(n_papers):
@@ -98,36 +97,33 @@ def cumulative(solver, h, w, n_papers, coords, rotations, papers):
         solver.add(Sum(listsum) == h)
 
 
-
 # Stay in limits constraints W and H
 def stay_in_limits(solver, coords, n_papers, w, h, rotations, papers):
     for i in range(n_papers):
         solver.add(
             And(
-                (coords[i][0]+getdimension(i, 0, rotations, papers))<=w,
-                (coords[i][0]>=0)
+                And(
+                    (coords[i][0]+getdimension(i, 0, rotations, papers))<=w,
+                    (coords[i][0]>=0)
+                ),
+                And(
+                    (coords[i][1]+getdimension(i, 1, rotations, papers))<=h,
+                    (coords[i][1]>=0)
+                )
             )
-        )
-
-        solver.add(
-            And(
-                (coords[i][1]+getdimension(i, 1, rotations, papers))<=h,
-                (coords[i][1]>=0)
             )
-        )
 
 
 # coordinates of each paper cut all differents
-#def alldifferent(solver, coords, n_papers):
-    # for i in range(n_papers):
-    #     for j in range(i+1, n_papers):
-    #         solver.add(
-    #             Distinct(
-    #                 coords[i][0]*100+coords[i][1],
-    #                 coords[j][0]*100+coords[j][1]
-    #             )
-    #         )
-
+def alldifferent(solver, coords, n_papers):
+    for i in range(n_papers):
+        for j in range(i+1, n_papers):
+            solver.add(
+                Distinct(
+                    coords[i][0]*100+coords[i][1],
+                    coords[j][0]*100+coords[j][1]
+                )
+            )
 
 
 # no overlapping bewtween different pieces
@@ -136,10 +132,14 @@ def no_overlapping(solver, coords, n_papers, rotations, papers):
         for j in range(i+1, n_papers):
             solver.add(
                         Or(
-                            coords[i][0]+getdimension(i, 0, rotations, papers)<=coords[j][0],
-                            coords[j][0]+getdimension(j, 0, rotations, papers)<=coords[i][0],
-                            coords[i][1]+getdimension(i, 1, rotations, papers)<=coords[j][1],
-                            coords[j][0]+getdimension(j, 1, rotations, papers)<=coords[i][1]
+                            Or(
+                                coords[i][0]+getdimension(i, 0, rotations, papers)<=coords[j][0],
+                                coords[i][1]+getdimension(i, 1, rotations, papers)<=coords[j][1]
+                                ),
+                            Or(
+                                coords[j][0]+getdimension(j, 0, rotations, papers)<=coords[i][0],
+                                coords[j][1]+getdimension(j, 1, rotations, papers)<=coords[i][1]
+                                )
                         )
                       )
 
@@ -167,7 +167,6 @@ def lex_lesseq(solver, list1, list2):
     #     constr = Or(list1[i] < list2[i], And(list1[i] == list2[i], temp))
     #     temp = constr
     # solver.add(constr)
-
     temp = list1[0] <= list2[0]
     for i in range(1, len(list1)):
         temp = And(temp, append_or(i, list1, list2))
@@ -201,8 +200,8 @@ def solve_z3(w, h, n_papers, papers, instance):
 
     # adding the constraints
     cumulative(solver, h, w, n_papers, coords, rotations, papers)
-    #stay_in_limits(solver, coords, n_papers, w, h, rotations, papers)
-    #alldifferent(solver, coords, n_papers)
+    stay_in_limits(solver, coords, n_papers, w, h, rotations, papers)
+    alldifferent(solver, coords, n_papers)
     no_overlapping(solver, coords, n_papers, rotations, papers)
     no_rotation_on_squared(solver, n_papers, rotations, papers)
     lex_lesseq(solver, [coords[i][0]*100+coords[i][1] for i in range(n_papers)], [coords[i][1]*100+coords[i][0] for i in range(n_papers)])
