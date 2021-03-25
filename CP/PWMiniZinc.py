@@ -95,6 +95,7 @@ def main():
         instance_choose_name = str(input("\nWrong choice.\nChoose an instance: [without the extension]\n"))  #"08x08"
         instance_choose = instance_choose_name + ".dzn"
 
+    print("Solving...")
     gecode = Solver.lookup("gecode")
 
     model = Model()

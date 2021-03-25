@@ -218,6 +218,7 @@ def solve_z3(w, h, n_papers, papers, instance):
 
 
     while solver.check() == sat:
+    print("Solving...")
         model = solver.model()
         result = [[papers[i][0], papers[i][1], model.evaluate(coords[i][0]).as_long(),    model.evaluate(coords[i][1]).as_long(), model.evaluate(rotations[i])] for i in range(n_papers) ]
 
