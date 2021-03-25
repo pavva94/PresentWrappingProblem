@@ -32,6 +32,8 @@ constraint cumulative(coords[.., 1], [get_dimension(i,1) | i in N_PAPERS], [get_
 constraint cumulative(coords[.., 2], [get_dimension(i,2) | i in N_PAPERS], [get_dimension(i,1) | i in N_PAPERS], w);
 
 
+constraint alldifferent([coords[i,1]*100+coords[i,2] | i in N_PAPERS]);
+
 % stay in the limits W and H
 constraint forall(i in N_PAPERS)
               ((coords[i,1]+get_dimension(i,1))<=w+1)/\
