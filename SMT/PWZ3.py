@@ -60,12 +60,15 @@ def print_solution(h, w, n_papers, resultList, solutionCounter=1):
     plt.show()
 
 
-def write_solution(instance, w, h, n_papers, papers, coords, rotations, path="SMT/out/"):
+def write_solution(instance, w, h, n_papers, papers, coords, rotations, path="SMT/out/", user_rotation=False):
     output = open(path + "/" + instance, "w")
     output.write("{} {}\n".format(w, h))
     output.write("{}\n".format(n_papers))
     for i in range(n_papers):
+        if user_rotation:
             output.write("{} {} {} {} {}\n".format(int(papers[i][0]), int(papers[i][1]), coords[i][0], coords[i][1], rotations[i]))
+        else:
+            output.write("{} {} {} {}\n".format(int(papers[i][0]), int(papers[i][1]), coords[i][0], coords[i][1]))
     output.close()
 
 
@@ -150,6 +153,12 @@ def no_rotation_on_squared(solver, n_papers, rotations, papers):
         if getdimension(i, 0, rotations, papers)==getdimension(i, 1, rotations, papers):
             solver.add(Not(rotations[i]))
 
+
+def no_rotation(solver, n_papers, rotations, papers):
+    for i in range(n_papers):
+        solver.add(Not(rotations[i]))
+
+
 def append_or(i, list1, list2):
     if i == 1:
         return Or(Not(list1[i-1]==list2[i-1]), list1[i]<=list2[i])
@@ -189,7 +198,7 @@ def getdimension(i, axis, rotations, papers):
         return If(rotations[i], papers[i][0], papers[i][1])
 
 
-def solve_z3(w, h, n_papers, papers, instance):
+def solve_z3(w, h, n_papers, papers, instance, user_rotation):
 
     coords = [[Int("c_{}_{}".format(i, j)) for j in range(2)]
                for i in range(n_papers)]
@@ -203,10 +212,16 @@ def solve_z3(w, h, n_papers, papers, instance):
     stay_in_limits(solver, coords, n_papers, w, h, rotations, papers)
     alldifferent(solver, coords, n_papers)
     no_overlapping(solver, coords, n_papers, rotations, papers)
-    no_rotation_on_squared(solver, n_papers, rotations, papers)
     lex_lesseq(solver, [coords[i][0]*100+coords[i][1] for i in range(n_papers)], [coords[i][1]*100+coords[i][0] for i in range(n_papers)])
     lex_lesseq(solver, [coords[i][0] for i in range(n_papers)], [w - getdimension(p, 0, rotations, papers) - coords[p][0] for p in range(n_papers)])
     lex_lesseq(solver, [coords[i][1] for i in range(n_papers)], [h - getdimension(p, 1, rotations, papers) - coords[p][1] for p in range(n_papers)])
+
+
+    # check if Rotation is selected
+    if user_rotation:
+        no_rotation_on_squared(solver, n_papers, rotations, papers)
+    else:
+        no_rotation(solver, n_papers, rotations, papers)
 
     max_solution = 6
     max_step = 100
@@ -215,9 +230,8 @@ def solve_z3(w, h, n_papers, papers, instance):
     counter_solutions = 0
     counter_step = 0
 
-
-    while solver.check() == sat:
     print("Solving...")
+    if solver.check() == sat:
         model = solver.model()
         result = [[papers[i][0], papers[i][1], model.evaluate(coords[i][0]).as_long(),    model.evaluate(coords[i][1]).as_long(), model.evaluate(rotations[i])] for i in range(n_papers) ]
 
@@ -226,15 +240,16 @@ def solve_z3(w, h, n_papers, papers, instance):
             counter_solutions += 1
 
         print(result)
-        if counter_step >= max_step:
-            break
-        counter_step += 1
+        # if counter_step >= max_step:
+        #     break
+        # counter_step += 1
 
         if write_sol:
             write_solution(
                 instance + "-out.txt", w, h, n_papers, papers,
                 [ [model.evaluate(coords[i][0]),    model.evaluate(coords[i][1]), model.evaluate(rotations[i])] for i in range(n_papers) ],
-                [ model.evaluate(rotations[i]) for i in range(n_papers) ])
+                [ model.evaluate(rotations[i]) for i in range(n_papers) ],
+                user_rotation=user_rotation)
             write_sol = False
             print(solver.statistics())
 
@@ -262,8 +277,18 @@ def main():
         instance_choose = str(input("\nWrong choice.\nChoose an instance: [without the extension]\n"))  #"08x08"
         instance_choose += ".txt"
 
+    user_rotation = str(input("\n\nDo yo want to use rotation: [Y/N]\n")).upper()
+    while user_rotation not in ["Y", "N"]:
+        user_rotation = str(input("\nWrong choice.\nDo yo want to use rotation: [Y/N]\n")).upper()
+
+    if user_rotation == "Y":
+        user_rotation  = True
+    else:
+        user_rotation = False
+
+    print("Building the Model...")
     w, h, n_papers, papers = read_txt(path_instances + instance_choose)
-    results = solve_z3(w, h, n_papers, papers, instance_choose.split('.')[0])
+    results = solve_z3(w, h, n_papers, papers, instance_choose.split('.')[0], user_rotation)
 
 
 
