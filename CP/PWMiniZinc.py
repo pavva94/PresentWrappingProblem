@@ -156,7 +156,8 @@ def main():
             result = instance.solve(all_solutions=False)
             write_solution(path_solution, instance_choose_name, str(result.solution))
             print_solution(result, 1)
-
+            print("Stats")
+            print(result.statistics)
 
 if __name__ == "__main__":
     main()
