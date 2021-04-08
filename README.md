@@ -2,6 +2,12 @@
 This is the repository for the Present Wrapping Problem, 
 This problem was the Exam of the first module of Combinatorial Decision Making.
 
+## Requirements
+To run this program there are some required pakages:
+- z3-solver           4.8.10.0
+- matplotlib          3.3.4
+- minizinc            0.4.2
+
 
 ## How to use
 We have created a user-friendly interface to be used by the Terminal/Command-Prompt. 
