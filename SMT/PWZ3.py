@@ -61,6 +61,8 @@ def print_solution(h, w, n_papers, resultList, solutionCounter=1):
 
 
 def write_solution(instance, w, h, n_papers, papers, coords, rotations, path="SMT/out/", user_rotation=False):
+    if user_rotation:
+        path = "SMT/out-rot/"
     output = open(path + "/" + instance, "w")
     output.write("{} {}\n".format(w, h))
     output.write("{}\n".format(n_papers))
@@ -159,6 +161,10 @@ def no_rotation(solver, n_papers, rotations, papers):
         solver.add(Not(rotations[i]))
 
 
+def at_least_one_rotation(solver, n_papers, rotations, papers):
+    solver.add(Or([rotations[i] for i in range(n_papers)]))
+
+
 def append_or(i, list1, list2):
     if i == 1:
         return Or(Not(list1[i-1]==list2[i-1]), list1[i]<=list2[i])
@@ -198,7 +204,7 @@ def getdimension(i, axis, rotations, papers):
         return If(rotations[i], papers[i][0], papers[i][1])
 
 
-def solve_z3(w, h, n_papers, papers, instance, user_rotation):
+def solve_z3(w, h, n_papers, papers, instance, user_rotation, print_solutions=True):
 
     coords = [[Int("c_{}_{}".format(i, j)) for j in range(2)]
                for i in range(n_papers)]
@@ -212,14 +218,25 @@ def solve_z3(w, h, n_papers, papers, instance, user_rotation):
     stay_in_limits(solver, coords, n_papers, w, h, rotations, papers)
     alldifferent(solver, coords, n_papers)
     no_overlapping(solver, coords, n_papers, rotations, papers)
-    lex_lesseq(solver, [coords[i][0]*100+coords[i][1] for i in range(n_papers)], [coords[i][1]*100+coords[i][0] for i in range(n_papers)])
-    lex_lesseq(solver, [coords[i][0] for i in range(n_papers)], [w - getdimension(p, 0, rotations, papers) - coords[p][0] for p in range(n_papers)])
-    lex_lesseq(solver, [coords[i][1] for i in range(n_papers)], [h - getdimension(p, 1, rotations, papers) - coords[p][1] for p in range(n_papers)])
+    lex_lesseq(solver,
+                [coords[i][0]*100+coords[i][1] for i in range(n_papers)],
+                [coords[i][1]*100+coords[i][0] for i in range(n_papers)])
+
+
+    lex_lesseq(solver,
+                [coords[i][0] for i in range(n_papers)],
+                [w - getdimension(p, 0, rotations, papers) - coords[p][0] for p in range(n_papers)])
+
+
+    lex_lesseq(solver,
+                [coords[i][1] for i in range(n_papers)],
+                [h - getdimension(p, 1, rotations, papers) - coords[p][1] for p in range(n_papers)])
 
 
     # check if Rotation is selected
     if user_rotation:
         no_rotation_on_squared(solver, n_papers, rotations, papers)
+        at_least_one_rotation(solver, n_papers, rotations, papers)
     else:
         no_rotation(solver, n_papers, rotations, papers)
 
@@ -259,10 +276,10 @@ def solve_z3(w, h, n_papers, papers, instance, user_rotation):
 
     print("number of solutions: " + str(counter_solutions))
 
-    if results:
+    if results and print_solutions:
         print_solution(w, h, n_papers, results)
 
-    return results
+    return results, solver.statistics()
 
 
 
@@ -288,7 +305,7 @@ def main():
 
     print("Building the Model...")
     w, h, n_papers, papers = read_txt(path_instances + instance_choose)
-    results = solve_z3(w, h, n_papers, papers, instance_choose.split('.')[0], user_rotation)
+    solve_z3(w, h, n_papers, papers, instance_choose.split('.')[0], user_rotation)
 
 
 
