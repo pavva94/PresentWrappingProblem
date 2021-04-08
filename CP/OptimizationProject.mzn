@@ -22,10 +22,6 @@ int: index_of_largest_paper = ordered_index_array[n];
 set of int: X_COORDS = lower_bounds[x]..upper_bounds[x]-1;
 set of int: Y_COORDS = lower_bounds[y]..upper_bounds[y]-1;
 
-int: min_w = min(papers[.., x]);
-int: min_h = min(papers[.., y]);
-
-int: min_dim = min(min_w, min_h);
 %Results
 array[N_PAPERS, 1..2] of var 0..h-1: coords;
 
@@ -85,5 +81,3 @@ show(n) ++ "\n"];
 output [
 show(papers[i,x]) ++  " " ++ show(papers[i,y]) ++ "\t" ++ show(coords[i,x]) ++ " " ++ show(coords[i,y]) ++ "\n" | i in N_PAPERS
 ];
-
-%output[show([coords[i,1]*100+coords[i,2] | i in N_PAPERS]) ++"\n"++ show([coords[i,2]*100+coords[i,1] | i in N_PAPERS])];
