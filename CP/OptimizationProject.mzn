@@ -32,15 +32,21 @@ array[N_PAPERS, 1..2] of var 0..h-1: coords;
 %constraint alldifferent([coords[i,1]*100+coords[i,2] | i in N_PAPERS]);
 
 % cumulative constraint we look at the problem as a resource/time task problem
-%constraint cumulative(coords[.., x], [papers[i,x] | i in N_PAPERS], [papers[i,y] | i in N_PAPERS], h);
-%constraint cumulative(coords[.., y], [papers[i,y] | i in N_PAPERS], [papers[i,x] | i in N_PAPERS], w);
+%constraint cumulative(coords[.., x], papers[.., x], papers[.., y], h);
+%constraint cumulative(coords[.., y], papers[.., y], papers[.., x], w);
 
 %cumulative constraint
 constraint forall (x_coord in X_COORDS) (
-                    sum(i in N_PAPERS) 
-                    (if x_coord >= coords[i, x] /\ x_coord < coords[i, x] + papers[i, x] then papers[i, y] else 0 endif) = h) /\         forall (y_coord in Y_COORDS) (
                   sum(i in N_PAPERS) 
-                  (if y_coord >= coords[i, y] /\ y_coord < coords[i, y] + papers[i, y] then papers[i, x] else 0 endif) = w);
+                  (if x_coord >= coords[i, x] /\ x_coord < coords[i, x] + papers[i, x] 
+                  then papers[i, y] 
+                  else 0 endif) = h) 
+           /\         
+           forall (y_coord in Y_COORDS) (
+                  sum(i in N_PAPERS) 
+                  (if y_coord >= coords[i, y] /\ y_coord < coords[i, y] + papers[i, y] 
+                  then papers[i, x] 
+                  else 0 endif) = w);
 
 
 
@@ -56,7 +62,8 @@ constraint diffn_k(coords, papers);
 %constraint coords[index_of_largest_paper, 1] <= w+1 - papers[index_of_largest_paper, 1];%w-papers[index_of_largest_paper, 1]+1;
 %constraint coords[index_of_largest_paper, 2] <= h+1 - papers[index_of_largest_paper, 2];%w-papers[index_of_largest_paper, 2]+1;
 
-constraint forall(i in N_PAPERS) (lex_greatereq(coords[i, x..y], coords[index_of_largest_paper, x..y]));
+constraint forall(i in N_PAPERS) 
+            (lex_greatereq(coords[i, x..y], coords[index_of_largest_paper, x..y]));
 
 %constraint lex_lesseq(coords[.., 1], [w - papers[p, 1] - coords[p, 1] | p in N_PAPERS]);
 %constraint lex_lesseq(coords[.., 2], [h - papers[p, 2] - coords[p, 2] | p in N_PAPERS]);
@@ -67,38 +74,10 @@ constraint forall(i in N_PAPERS) (lex_greatereq(coords[i, x..y], coords[index_of
 %constraint lex_greatereq([coords[i,1] | i in N_PAPERS], [w - papers[p,1] - coords[p,1] | p in N_PAPERS]);
 %constraint lex_greatereq([coords[i,2] | i in N_PAPERS], [h - papers[p,2] - coords[p,2] | p in N_PAPERS]);
 
-
-%solve satisfy;
-%Programmed search
-%ann: search_ann;
-
-ann: search_ann = int_search([coords[i, x] | i in ordered_index_array], dom_w_deg, indomain_min, complete); 
-ann: restart_annotation = restart_luby(5000);
+% search strategy
+ann: search_ann = int_search([coords[i, x] | i in ordered_index_array], dom_w_deg, indomain_random, complete); 
+ann: restart_annotation = restart_luby(2000);
 solve :: search_ann :: restart_annotation satisfy;
-
-%ann: coords_search = int_search(coords, first_fail, indomain_min);
-%ann: restart_annotation = restart_luby(1000);
-
-%solve :: coords_search :: search_ann satisfy;
-
-% SEARCH ANNOTATION
-
-% Use sarch  and restart annotations to investigate for best search strategy
-%ann: search_annotation;
-%ann: restart_annotation;
-
-%search_annotation = seq_search([int_search(pieces_corners[.., x], dom_w_deg, indomain_min), 
-%                                int_search(pieces_corners[.., y], dom_w_deg, indomain_min)]);
-
-
-
-% Search for solution as a constraint satisfaction problem
-%solve :: search_annotation
-%      :: restart_annotation
-%      satisfy;
-
-
-
 
 output [
 show(w) ++ " " ++ show(h) ++ "\n" ++
