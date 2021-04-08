@@ -10,6 +10,7 @@ from minizinc import Instance, Model, Solver
 
 path_dzn = "CP/in/"
 path_solution = "CP/out/"
+path_solution_rot = "CP/out-rot/"
 
 
 def read_txt(path):
@@ -93,6 +94,7 @@ def print_solution(resultList, solutionCounter=6, user_rotation=False):
         plt.plot()
 
     else:
+        print(len(resultList.solution))
         for i in range(len(resultList.solution)):
             if i < solutionCounter:
                 r = resultList.solution[i]
@@ -100,7 +102,7 @@ def print_solution(resultList, solutionCounter=6, user_rotation=False):
                     draw_single_solution_rotation(r, fig, fig_rows, i, colors)
                 else:
                     draw_single_solution(r, fig, fig_rows, i, colors)
-                plt.plot()
+                    plt.plot()
 
     plt.show()
 
@@ -136,8 +138,12 @@ def main():
     model = Model()
     if user_rotation == "Y":
         model.add_file("CP/OptimizationProjectRotation.mzn")
+        path_solution_choosen = path_solution_rot
+        user_rotation = True
     else:
         model.add_file("CP/OptimizationProject.mzn")
+        path_solution_choosen = path_solution
+        user_rotation = False
 
     model.add_file(path_dzn + instance_choose)
 
@@ -150,12 +156,12 @@ def main():
             result = instance.solve(nr_solutions=counter_solutions)
             print("Stats")
             print(result.statistics)
-            print_solution(result)
+            print_solution(result, user_rotation=user_rotation)
 
     else:
             result = instance.solve(all_solutions=False)
-            write_solution(path_solution, instance_choose_name, str(result.solution))
-            print_solution(result, 1)
+            write_solution(path_solution_choosen, instance_choose_name, str(result.solution))
+            print_solution(result, 1, user_rotation=user_rotation)
             print("Stats")
             print(result.statistics)
 
