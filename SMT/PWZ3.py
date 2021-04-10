@@ -176,25 +176,11 @@ def append_or(i, list1, list2):
 
 
 def lex_lesseq(solver, list1, list2):
-    # temp = list1[0] < list2[0]
-    # constr = None
-    # for i in range(len(list1)):
-    #     constr = Or(list1[i] < list2[i], And(list1[i] == list2[i], temp))
-    #     temp = constr
-    # solver.add(constr)
     temp = list1[0] <= list2[0]
     for i in range(1, len(list1)):
         temp = And(temp, append_or(i, list1, list2))
 
-    # print(temp)
     solver.add(temp)
-    # temp = list1[-1] < list2[-1]
-    # constr = None
-    # for i in range(len(list1)-2, -1, -1):
-    #     constr = Or(list1[i] < list2[i], And(list1[i] == list2[i], temp))
-    #     temp = constr
-    # solver.add(constr)
-    # print(constr)
 
 
 def getdimension(i, axis, rotations, papers):
