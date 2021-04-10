@@ -202,7 +202,6 @@ def solve_z3(w, h, n_papers, papers, instance, user_rotation, print_solutions=Tr
     # adding the constraints
     cumulative(solver, h, w, n_papers, coords, rotations, papers)
     stay_in_limits(solver, coords, n_papers, w, h, rotations, papers)
-    alldifferent(solver, coords, n_papers)
     no_overlapping(solver, coords, n_papers, rotations, papers)
     lex_lesseq(solver,
                 [coords[i][0]*100+coords[i][1] for i in range(n_papers)],
@@ -223,6 +222,7 @@ def solve_z3(w, h, n_papers, papers, instance, user_rotation, print_solutions=Tr
     if user_rotation:
         no_rotation_on_squared(solver, n_papers, rotations, papers)
         at_least_one_rotation(solver, n_papers, rotations, papers)
+        alldifferent(solver, coords, n_papers)
     else:
         no_rotation(solver, n_papers, rotations, papers)
 
