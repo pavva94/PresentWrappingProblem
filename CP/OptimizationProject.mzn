@@ -33,15 +33,15 @@ array[N_PAPERS, 1..2] of var 0..h-1: coords;
 
 %cumulative constraint
 constraint forall (x_coord in X_COORDS) (
-                  sum(i in N_PAPERS) 
-                  (if x_coord >= coords[i, x] /\ x_coord < coords[i, x] + papers[i, x] 
-                  then papers[i, y] 
-                  else 0 endif) = h) 
-           /\         
+                  sum(i in N_PAPERS)
+                  (if x_coord >= coords[i, x] /\ x_coord < coords[i, x] + papers[i, x]
+                  then papers[i, y]
+                  else 0 endif) = h)
+           /\
            forall (y_coord in Y_COORDS) (
-                  sum(i in N_PAPERS) 
-                  (if y_coord >= coords[i, y] /\ y_coord < coords[i, y] + papers[i, y] 
-                  then papers[i, x] 
+                  sum(i in N_PAPERS)
+                  (if y_coord >= coords[i, y] /\ y_coord < coords[i, y] + papers[i, y]
+                  then papers[i, x]
                   else 0 endif) = w);
 
 
@@ -58,7 +58,7 @@ constraint diffn_k(coords, papers);
 %constraint coords[index_of_largest_paper, 1] <= w+1 - papers[index_of_largest_paper, 1];%w-papers[index_of_largest_paper, 1]+1;
 %constraint coords[index_of_largest_paper, 2] <= h+1 - papers[index_of_largest_paper, 2];%w-papers[index_of_largest_paper, 2]+1;
 
-constraint forall(i in N_PAPERS) 
+constraint forall(i in N_PAPERS)
             (lex_greatereq(coords[i, x..y], coords[index_of_largest_paper, x..y]));
 
 %constraint lex_lesseq(coords[.., 1], [w - papers[p, 1] - coords[p, 1] | p in N_PAPERS]);
@@ -71,10 +71,11 @@ constraint forall(i in N_PAPERS)
 %constraint lex_greatereq([coords[i,2] | i in N_PAPERS], [h - papers[p,2] - coords[p,2] | p in N_PAPERS]);
 
 % search strategy
-ann: search_ann = int_search([coords[i, x] | i in ordered_index_array], dom_w_deg, indomain_random, complete); 
-ann: restart_annotation = restart_luby(2000);
+ann: search_ann = int_search([coords[i, x] | i in ordered_index_array], dom_w_deg, indomain_min); 
+ann: restart_annotation = restart_luby(5000);
 solve :: search_ann :: restart_annotation satisfy;
 
+% print results
 output [
 show(w) ++ " " ++ show(h) ++ "\n" ++
 show(n) ++ "\n"];
