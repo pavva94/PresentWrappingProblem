@@ -62,7 +62,7 @@ def main():
     plt.show()
 
     fig = plt.figure()
-    plt.plot(range(8, len(solv_times)+8), solv_times, 'bo')
+    plt.plot(range(8, len(solv_restarts)+8), solv_restarts, 'bo')
     plt.yscale('log')
     # beautify the x-labels
     plt.xlabel("Instances")
